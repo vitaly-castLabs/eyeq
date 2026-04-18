@@ -27,7 +27,7 @@ cmake --build build -j
 | ------------ | ------ |
 | `--psnr`     | Peak Signal-to-Noise Ratio, full frame (YUV 4:2:0 weighted 4:1:1) |
 | `--psnr-y`   | Peak Signal-to-Noise Ratio, Y plane only |
-| `--ssim`     | Structural Similarity Index (Y channel, 8×8 sliding window) |
+| `--ssim`     | Structural Similarity Index (Y channel) |
 | `--psnr-hvs` | PSNR with Human Visual System weighting |
 | `--vmaf`     | VMAF |
 | `--ssim2`    | SSIMULACRA 2.1 (fetched + built from [cloudinary/ssimulacra2](https://github.com/cloudinary/ssimulacra2)) |
