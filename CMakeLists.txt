@@ -19,9 +19,20 @@ pkg_check_modules(LIBAVUTIL REQUIRED IMPORTED_TARGET libavutil)
 pkg_check_modules(LIBSWSCALE REQUIRED IMPORTED_TARGET libswscale)
 pkg_check_modules(LIBVMAF REQUIRED IMPORTED_TARGET libvmaf)
 
+include(FetchContent)
+FetchContent_Declare(
+    ssimulacra2
+    GIT_REPOSITORY https://github.com/cloudinary/ssimulacra2.git
+    GIT_TAG        81feacf6a5b0bbd7ec11b4a881a4615033ab0b10
+    SOURCE_SUBDIR  src
+)
+FetchContent_MakeAvailable(ssimulacra2)
+
 add_executable(eyeq src/eyeq.cpp)
+add_dependencies(eyeq ssimulacra2)
 
 target_compile_options(eyeq PRIVATE -Wall -Wextra -Wpedantic)
+target_compile_definitions(eyeq PRIVATE SSIMULACRA2_BIN="$<TARGET_FILE:ssimulacra2>")
 target_link_libraries(
     eyeq
     PRIVATE

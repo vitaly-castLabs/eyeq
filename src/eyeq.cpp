@@ -122,6 +122,7 @@ static std::optional<Image> load_image(const char* path, ColorSpace cs) {
     img.width = converted->width;
     img.height = converted->height;
     img.colorspace = cs;
+    img.path = path;
 
     int plane_sizes[3];
     for (int i = 0; i < 3; ++i) {
@@ -175,6 +176,8 @@ static bool parse_args(Options& opts, int argc, char* argv[]) {
             opts.metrics.push_back("psnr-hvs");
         else if (arg == "--vmaf")
             opts.metrics.push_back("vmaf");
+        else if (arg == "--ssim2")
+            opts.metrics.push_back("ssim2");
         else
             positional.push_back(arg);
     }
@@ -183,7 +186,7 @@ static bool parse_args(Options& opts, int argc, char* argv[]) {
         opts.metrics.push_back("psnr");
 
     if (positional.size() < 2) {
-        std::cerr << "Usage: eyeq [--psnr] [--psnr-y] [--ssim] [--psnr-hvs] [--vmaf] <reference> <distorted>\n";
+        std::cerr << "Usage: eyeq [--psnr] [--psnr-y] [--ssim] [--psnr-hvs] [--vmaf] [--ssim2] <reference> <distorted>\n";
         return false;
     }
 

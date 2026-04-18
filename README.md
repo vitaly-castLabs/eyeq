@@ -5,7 +5,7 @@ Objective image quality measurement tool.
 ## Prerequisites
 
 ```bash
-sudo apt install build-essential clang cmake libavformat-dev libavcodec-dev libavutil-dev libswscale-dev libvmaf-dev pkg-config
+sudo apt install build-essential clang cmake libavformat-dev libavcodec-dev libavutil-dev libswscale-dev libvmaf-dev libhwy-dev liblcms2-dev libjpeg-dev libpng-dev pkg-config
 ```
 
 ## Build
@@ -23,13 +23,14 @@ cmake --build build -j
 
 ### Options
 
-| Flag         | Metric              |
-| ------------ | ------------------- |
+| Flag         | Metric |
+| ------------ | ------ |
 | `--psnr`     | Peak Signal-to-Noise Ratio, full frame (YUV 4:2:0 weighted 4:1:1) |
 | `--psnr-y`   | Peak Signal-to-Noise Ratio, Y plane only |
 | `--ssim`     | Structural Similarity Index (Y channel, 8×8 sliding window) |
 | `--psnr-hvs` | PSNR with Human Visual System weighting |
-| `--vmaf`     | VMAF  |
+| `--vmaf`     | VMAF |
+| `--ssim2`    | SSIMULACRA 2.1 (fetched + built from [cloudinary/ssimulacra2](https://github.com/cloudinary/ssimulacra2)) |
 
 libvmaf caps PSNR at 60 dB when planes are identical.
 

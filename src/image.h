@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <span>
+#include <string>
 #include <vector>
 
 extern "C" {
@@ -35,6 +36,7 @@ struct Image {
     int height = 0;
     ColorSpace colorspace = ColorSpace::I420;
     std::vector<uint8_t> data;
+    std::string path;
 
     std::span<const uint8_t> plane(int idx) const {
         int w = width, h = height;

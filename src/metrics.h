@@ -32,6 +32,7 @@ protected:
 #include "psnr.h"
 #include "psnr_hvs.h"
 #include "ssim.h"
+#include "ssimulacra2.h"
 #include "vmaf.h"
 
 class MetricsFactory {
@@ -47,6 +48,8 @@ public:
             return std::make_unique<PsnrHvs>(width, height, cs);
         if (metric == "vmaf")
             return std::make_unique<Vmaf>(width, height, cs);
+        if (metric == "ssim2")
+            return std::make_unique<Ssimulacra2>(width, height, cs);
         return nullptr;
     }
 };
