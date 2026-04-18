@@ -167,6 +167,8 @@ static bool parse_args(Options& opts, int argc, char* argv[]) {
         const std::string_view arg = argv[i];
         if (arg == "--psnr")
             opts.metrics.push_back("psnr");
+        else if (arg == "--psnr-y")
+            opts.metrics.push_back("psnr-y");
         else if (arg == "--ssim")
             opts.metrics.push_back("ssim");
         else if (arg == "--psnr-hvs")
@@ -181,7 +183,7 @@ static bool parse_args(Options& opts, int argc, char* argv[]) {
         opts.metrics.push_back("psnr");
 
     if (positional.size() < 2) {
-        std::cerr << "Usage: eyeq [--psnr] [--ssim] [--psnr-hvs] [--vmaf] <reference> <distorted>\n";
+        std::cerr << "Usage: eyeq [--psnr] [--psnr-y] [--ssim] [--psnr-hvs] [--vmaf] <reference> <distorted>\n";
         return false;
     }
 
@@ -216,16 +218,18 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
-        auto score = metric->measure(*ref, *dist);
-        if (!score) {
+        auto scores = metric->measure(*ref, *dist);
+        if (!scores) {
             std::cerr << metric_name << ": computation failed\n";
             return 1;
         }
 
-        if (std::isinf(*score))
-            std::cout << metric_name << ": inf (identical)\n";
-        else
-            std::cout << metric_name << ": " << *score << '\n';
+        for (const auto& s: *scores) {
+            if (std::isinf(s.value))
+                std::cout << s.label << ": inf (identical)\n";
+            else
+                std::cout << s.label << ": " << s.value << '\n';
+        }
     }
 
     return 0;

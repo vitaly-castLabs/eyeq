@@ -25,10 +25,13 @@ cmake --build build -j
 
 | Flag         | Metric              |
 | ------------ | ------------------- |
-| `--psnr`     | Peak Signal-to-Noise Ratio (Y channel) |
+| `--psnr`     | Peak Signal-to-Noise Ratio, full frame (YUV 4:2:0 weighted 4:1:1) |
+| `--psnr-y`   | Peak Signal-to-Noise Ratio, Y plane only |
 | `--ssim`     | Structural Similarity Index (Y channel, 8×8 sliding window) |
-| `--psnr-hvs` | PSNR with Human Visual System weighting (via libvmaf) |
-| `--vmaf`     | VMAF (via libvmaf)  |
+| `--psnr-hvs` | PSNR with Human Visual System weighting |
+| `--vmaf`     | VMAF  |
+
+libvmaf caps PSNR at 60 dB when planes are identical.
 
 No flags defaults to `--psnr` only.
 

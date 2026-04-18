@@ -137,7 +137,7 @@ public:
 
     const char* name() const override { return "VMAF"; }
 
-    std::optional<float> measure(const Image& ref, const Image& dist) noexcept override {
+    std::optional<std::vector<Score>> measure(const Image& ref, const Image& dist) noexcept override {
         if (colorspace_ != ColorSpace::I420)
             return std::nullopt;
 
@@ -154,6 +154,9 @@ public:
             return std::nullopt;
         if (!runner.flush())
             return std::nullopt;
-        return runner.get_score(0);
+        auto score = runner.get_score(0);
+        if (!score)
+            return std::nullopt;
+        return std::vector<Score>{{"VMAF", *score}};
     }
 };

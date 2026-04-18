@@ -10,7 +10,7 @@ public:
 
     const char* name() const override { return "SSIM"; }
 
-    std::optional<float> measure(const Image& ref, const Image& dist) noexcept override {
+    std::optional<std::vector<Score>> measure(const Image& ref, const Image& dist) noexcept override {
         const int w = ref.width;
         const int h = ref.height;
         const auto& ref_data = ref.plane(0);
@@ -57,8 +57,7 @@ public:
             }
         }
 
-        if (count == 0)
-            return 0.0f;
-        return ssim_sum / count;
+        const float score = (count == 0) ? 0.0f : ssim_sum / count;
+        return std::vector<Score>{{"SSIM", score}};
     }
 };

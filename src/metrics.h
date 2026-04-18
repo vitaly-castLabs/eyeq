@@ -6,8 +6,14 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <vector>
 
 #include "image.h"
+
+struct Score {
+    std::string label;
+    float value;
+};
 
 class Metrics {
 public:
@@ -15,7 +21,7 @@ public:
     virtual ~Metrics() = default;
 
     virtual const char* name() const = 0;
-    virtual std::optional<float> measure(const Image& ref, const Image& dist) noexcept = 0;
+    virtual std::optional<std::vector<Score>> measure(const Image& ref, const Image& dist) noexcept = 0;
 
 protected:
     int width_;
@@ -33,6 +39,8 @@ public:
     static std::unique_ptr<Metrics> create(std::string_view metric, ColorSpace cs, int width, int height) {
         if (metric == "psnr")
             return std::make_unique<Psnr>(width, height, cs);
+        if (metric == "psnr-y")
+            return std::make_unique<PsnrY>(width, height, cs);
         if (metric == "ssim")
             return std::make_unique<Ssim>(width, height, cs);
         if (metric == "psnr-hvs")
