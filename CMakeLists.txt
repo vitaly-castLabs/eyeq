@@ -27,15 +27,29 @@ FetchContent_Declare(
     SOURCE_SUBDIR  src
 )
 FetchContent_MakeAvailable(ssimulacra2)
+if(TARGET ssimulacra2)
+    set_target_properties(ssimulacra2 PROPERTIES EXCLUDE_FROM_ALL TRUE)
+endif()
 
-add_executable(eyeq src/eyeq.cpp)
-add_dependencies(eyeq ssimulacra2)
+add_library(ssimulacra2_core STATIC
+    ${ssimulacra2_SOURCE_DIR}/src/ssimulacra2.cc
+)
+target_include_directories(ssimulacra2_core SYSTEM PUBLIC
+    ${ssimulacra2_SOURCE_DIR}/src
+)
+target_link_libraries(ssimulacra2_core PUBLIC
+    jxl
+    jxl_extras-static
+    hwy
+)
+
+add_executable(eyeq src/eyeq.cpp src/ssimulacra2.cpp)
 
 target_compile_options(eyeq PRIVATE -Wall -Wextra -Wpedantic)
-target_compile_definitions(eyeq PRIVATE SSIMULACRA2_BIN="$<TARGET_FILE:ssimulacra2>")
 target_link_libraries(
     eyeq
     PRIVATE
+        ssimulacra2_core
         PkgConfig::LIBAVFORMAT
         PkgConfig::LIBAVCODEC
         PkgConfig::LIBAVUTIL

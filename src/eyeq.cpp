@@ -184,11 +184,14 @@ static bool parse_args(Options& opts, int argc, char* argv[]) {
             add_metric(opts, "psnr-hvs");
         else if (arg == "--vmaf")
             add_metric(opts, "vmaf");
-        else if (arg == "--ssim2")
+        else if (arg == "--ssim2" || arg == "--ssimulacra2")
             add_metric(opts, "ssim2");
         else if (arg == "--all") {
             for (const auto metric: kAllMetrics)
                 add_metric(opts, metric);
+        } else if (arg.starts_with("--")) {
+            std::cerr << "Unknown option: " << arg << '\n';
+            return false;
         } else
             positional.push_back(arg);
     }
@@ -197,7 +200,7 @@ static bool parse_args(Options& opts, int argc, char* argv[]) {
         add_metric(opts, "psnr");
 
     if (positional.size() < 2) {
-        std::cerr << "Usage: eyeq [--all] [--psnr] [--psnr-y] [--ssim] [--psnr-hvs] [--vmaf] [--ssim2] <reference> <distorted>\n";
+        std::cerr << "Usage: eyeq [--all] [--psnr] [--psnr-y] [--ssim] [--psnr-hvs] [--vmaf] [--ssim2|--ssimulacra2] <reference> <distorted>\n";
         return false;
     }
 

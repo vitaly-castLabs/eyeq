@@ -31,7 +31,7 @@ cmake --build build -j
 | `--ssim`     | Structural Similarity Index (Y channel) |
 | `--psnr-hvs` | PSNR with Human Visual System weighting |
 | `--vmaf`     | VMAF |
-| `--ssim2`    | SSIMULACRA 2.1 (fetched + built from [cloudinary/ssimulacra2](https://github.com/cloudinary/ssimulacra2)) |
+| `--ssim2`, `--ssimulacra2` | SSIMULACRA 2.1 (fetched from [cloudinary/ssimulacra2](https://github.com/cloudinary/ssimulacra2) and linked in-process) |
 
 libvmaf caps PSNR at 60 dB when planes are identical.
 

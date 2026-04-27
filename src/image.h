@@ -23,6 +23,7 @@ static const char* color_space_name(ColorSpace cs) {
     return "unknown";
 }
 
+[[maybe_unused]]
 static AVPixelFormat color_space_to_av_pix_fmt(ColorSpace cs) {
     switch (cs) {
     case ColorSpace::I420:
