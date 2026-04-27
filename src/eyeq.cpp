@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <iostream>
@@ -161,32 +162,42 @@ struct Options {
     std::string_view dist_path;
 };
 
+static constexpr std::string_view kAllMetrics[] = {"psnr", "psnr-y", "ssim", "psnr-hvs", "vmaf", "ssim2"};
+
+static void add_metric(Options& opts, std::string_view metric) {
+    if (std::find(opts.metrics.begin(), opts.metrics.end(), metric) == opts.metrics.end())
+        opts.metrics.push_back(metric);
+}
+
 static bool parse_args(Options& opts, int argc, char* argv[]) {
     std::vector<std::string_view> positional;
 
     for (int i = 1; i < argc; ++i) {
         const std::string_view arg = argv[i];
         if (arg == "--psnr")
-            opts.metrics.push_back("psnr");
+            add_metric(opts, "psnr");
         else if (arg == "--psnr-y")
-            opts.metrics.push_back("psnr-y");
+            add_metric(opts, "psnr-y");
         else if (arg == "--ssim")
-            opts.metrics.push_back("ssim");
+            add_metric(opts, "ssim");
         else if (arg == "--psnr-hvs")
-            opts.metrics.push_back("psnr-hvs");
+            add_metric(opts, "psnr-hvs");
         else if (arg == "--vmaf")
-            opts.metrics.push_back("vmaf");
+            add_metric(opts, "vmaf");
         else if (arg == "--ssim2")
-            opts.metrics.push_back("ssim2");
-        else
+            add_metric(opts, "ssim2");
+        else if (arg == "--all") {
+            for (const auto metric: kAllMetrics)
+                add_metric(opts, metric);
+        } else
             positional.push_back(arg);
     }
 
     if (opts.metrics.empty())
-        opts.metrics.push_back("psnr");
+        add_metric(opts, "psnr");
 
     if (positional.size() < 2) {
-        std::cerr << "Usage: eyeq [--psnr] [--psnr-y] [--ssim] [--psnr-hvs] [--vmaf] [--ssim2] <reference> <distorted>\n";
+        std::cerr << "Usage: eyeq [--all] [--psnr] [--psnr-y] [--ssim] [--psnr-hvs] [--vmaf] [--ssim2] <reference> <distorted>\n";
         return false;
     }
 

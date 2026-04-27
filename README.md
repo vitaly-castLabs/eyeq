@@ -25,6 +25,7 @@ cmake --build build -j
 
 | Flag         | Metric |
 | ------------ | ------ |
+| `--all`      | Enable every metric |
 | `--psnr`     | Peak Signal-to-Noise Ratio, full frame (YUV 4:2:0 weighted 4:1:1) |
 | `--psnr-y`   | Peak Signal-to-Noise Ratio, Y plane only |
 | `--ssim`     | Structural Similarity Index (Y channel) |
@@ -47,5 +48,5 @@ Single metric (default PSNR):
 All metrics:
 
 ```bash
-./build/eyeq --psnr --ssim --psnr-hvs --vmaf ref.jpg distorted.jpg
+./build/eyeq --all ref.jpg distorted.jpg
 ```
