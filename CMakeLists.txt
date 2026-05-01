@@ -18,6 +18,8 @@ pkg_check_modules(LIBAVCODEC REQUIRED IMPORTED_TARGET libavcodec)
 pkg_check_modules(LIBAVUTIL REQUIRED IMPORTED_TARGET libavutil)
 pkg_check_modules(LIBSWSCALE REQUIRED IMPORTED_TARGET libswscale)
 pkg_check_modules(LIBVMAF REQUIRED IMPORTED_TARGET libvmaf)
+pkg_check_modules(LIBJXL REQUIRED IMPORTED_TARGET libjxl)
+pkg_check_modules(LIBJXL_THREADS REQUIRED IMPORTED_TARGET libjxl_threads)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -43,7 +45,7 @@ target_link_libraries(ssimulacra2_core PUBLIC
     hwy
 )
 
-add_executable(eyeq src/eyeq.cpp src/ssimulacra2.cpp)
+add_executable(eyeq src/eyeq.cpp src/ssimulacra2.cpp src/butteraugli.cpp)
 
 target_compile_options(eyeq PRIVATE -Wall -Wextra -Wpedantic)
 target_link_libraries(
@@ -55,4 +57,6 @@ target_link_libraries(
         PkgConfig::LIBAVUTIL
         PkgConfig::LIBSWSCALE
         PkgConfig::LIBVMAF
+        PkgConfig::LIBJXL
+        PkgConfig::LIBJXL_THREADS
 )
