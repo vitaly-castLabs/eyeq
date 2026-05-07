@@ -142,7 +142,7 @@ double get_avg_xpsnr(double sqrt_wsse, uint32_t img_w, uint32_t img_h, uint64_t 
 
 }
 
-std::optional<std::vector<Score>> Xpsnr::measure(const Image& ref, const Image& dist) noexcept {
+std::optional<XpsnrBase::Planes> XpsnrBase::compute(const Image& ref, const Image& dist) noexcept {
     if (colorspace_ != ColorSpace::I420)
         return std::nullopt;
 
@@ -272,14 +272,27 @@ std::optional<std::vector<Score>> Xpsnr::measure(const Image& ref, const Image& 
         xpsnr_per_comp[c] = get_avg_xpsnr(sqrt_wsse, (uint32_t) ref.plane_width(c), (uint32_t) ref.plane_height(c), max_error_64);
     }
 
-    auto mse_from_psnr = [](double q) { return (255.0 * 255.0) / std::pow(10.0, q / 10.0); };
-    const double mse_full = (4.0 * mse_from_psnr(xpsnr_per_comp[0]) + mse_from_psnr(xpsnr_per_comp[1]) + mse_from_psnr(xpsnr_per_comp[2])) / 6.0;
-    const double xpsnr_full = 10.0 * std::log10((255.0 * 255.0) / mse_full);
-
-    return std::vector<Score>{
-        {"XPSNR",     static_cast<float>(xpsnr_full)},
-        {"XPSNR (Y)", static_cast<float>(xpsnr_per_comp[0])},
-        {"XPSNR (U)", static_cast<float>(xpsnr_per_comp[1])},
-        {"XPSNR (V)", static_cast<float>(xpsnr_per_comp[2])},
+    return Planes{
+        static_cast<float>(xpsnr_per_comp[0]),
+        static_cast<float>(xpsnr_per_comp[1]),
+        static_cast<float>(xpsnr_per_comp[2]),
     };
+}
+
+std::optional<std::vector<Score>> Xpsnr::measure(const Image& ref, const Image& dist) noexcept {
+    auto p = compute(ref, dist);
+    if (!p)
+        return std::nullopt;
+
+    auto mse_from_psnr = [](double q) { return (255.0 * 255.0) / std::pow(10.0, q / 10.0); };
+    const double mse_full = (4.0 * mse_from_psnr(p->y) + mse_from_psnr(p->u) + mse_from_psnr(p->v)) / 6.0;
+    const double xpsnr_full = 10.0 * std::log10((255.0 * 255.0) / mse_full);
+    return std::vector<Score>{{"XPSNR", static_cast<float>(xpsnr_full)}};
+}
+
+std::optional<std::vector<Score>> XpsnrY::measure(const Image& ref, const Image& dist) noexcept {
+    auto p = compute(ref, dist);
+    if (!p)
+        return std::nullopt;
+    return std::vector<Score>{{"XPSNR (Y)", p->y}};
 }

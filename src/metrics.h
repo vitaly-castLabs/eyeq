@@ -50,6 +50,8 @@ public:
             return std::make_unique<PsnrHvs>(width, height, cs);
         if (metric == "xpsnr")
             return std::make_unique<Xpsnr>(width, height, cs);
+        if (metric == "xpsnr-y")
+            return std::make_unique<XpsnrY>(width, height, cs);
         if (metric == "vmaf")
             return std::make_unique<Vmaf>(width, height, cs);
         if (metric == "ssim2")
