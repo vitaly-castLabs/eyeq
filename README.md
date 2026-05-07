@@ -30,6 +30,7 @@ cmake --build build -j
 | `--psnr-y`   | Peak Signal-to-Noise Ratio, Y plane only |
 | `--ssim`     | Structural Similarity Index (Y channel) |
 | `--psnr-hvs` | PSNR with Human Visual System weighting |
+| `--xpsnr`    | Extended Perceptually Weighted PSNR (Fraunhofer HHI; algorithm ported from FFmpeg's `vf_xpsnr.c`) |
 | `--vmaf`     | VMAF |
 | `--ssim2`, `--ssimulacra2` | SSIMULACRA 2.1 (fetched from [cloudinary/ssimulacra2](https://github.com/cloudinary/ssimulacra2) and linked in-process) |
 | `--butteraugli` | Butteraugli distance (3-norm and max), via libjxl |
