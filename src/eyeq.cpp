@@ -15,6 +15,7 @@ extern "C" {
 #include <libavformat/avformat.h>
 #include <libavutil/avutil.h>
 #include <libavutil/imgutils.h>
+#include <libavutil/pixdesc.h>
 #include <libswscale/swscale.h>
 }
 
@@ -92,27 +93,34 @@ static std::optional<Image> load_image(const char* path, ColorSpace cs) {
     }
 
     const AVPixelFormat target_fmt = color_space_to_av_pix_fmt(cs);
+    const AVPixelFormat src_fmt = static_cast<AVPixelFormat>(frame->format);
 
-    AVFrame* converted = nullptr;
-    if (frame->format != target_fmt) {
-        SwsContext* sws = sws_getContext(frame->width, frame->height, static_cast<AVPixelFormat>(frame->format), frame->width, frame->height, target_fmt,
-                                         SWS_BILINEAR, nullptr, nullptr, nullptr);
-        if (!sws) {
-            std::cerr << "sws_getContext failed: " << path << '\n';
-            return std::nullopt;
-        }
-
-        converted = av_frame_alloc();
-        converted->width = frame->width;
-        converted->height = frame->height;
-        converted->format = target_fmt;
-        av_frame_get_buffer(converted, 32);
-
-        sws_scale(sws, (const uint8_t* const*)frame->data, frame->linesize, 0, frame->height, converted->data, converted->linesize);
-        sws_freeContext(sws);
-    } else {
-        converted = av_frame_clone(frame);
+    // Always go through sws with explicit BT.709 + full-range output, regardless of
+    // source format. Mixed sources (e.g., PNG-as-RGB vs JPEG-as-YUVJ) otherwise pick
+    // up different default matrices/ranges and bias the comparison.
+    SwsContext* sws = sws_getContext(frame->width, frame->height, src_fmt, frame->width, frame->height, target_fmt, SWS_BILINEAR, nullptr, nullptr, nullptr);
+    if (!sws) {
+        std::cerr << "sws_getContext failed: " << path << '\n';
+        return std::nullopt;
     }
+
+    const AVPixFmtDescriptor* src_desc = av_pix_fmt_desc_get(src_fmt);
+    const bool src_is_rgb = src_desc && (src_desc->flags & AV_PIX_FMT_FLAG_RGB);
+    const bool src_is_jpeg_yuv = src_fmt == AV_PIX_FMT_YUVJ420P || src_fmt == AV_PIX_FMT_YUVJ422P || src_fmt == AV_PIX_FMT_YUVJ444P ||
+                                 src_fmt == AV_PIX_FMT_YUVJ411P || src_fmt == AV_PIX_FMT_YUVJ440P;
+    const bool src_full_range = src_is_rgb || src_is_jpeg_yuv || frame->color_range == AVCOL_RANGE_JPEG;
+    const int src_matrix = (frame->colorspace == AVCOL_SPC_BT709) ? SWS_CS_ITU709 : SWS_CS_ITU601;
+
+    sws_setColorspaceDetails(sws, sws_getCoefficients(src_matrix), src_full_range ? 1 : 0, sws_getCoefficients(SWS_CS_ITU709), 1 /* full range */, 0, 1 << 16,
+                             1 << 16);
+
+    AVFrame* converted = av_frame_alloc();
+    converted->width = frame->width;
+    converted->height = frame->height;
+    converted->format = target_fmt;
+    av_frame_get_buffer(converted, 32);
+    sws_scale(sws, (const uint8_t* const*)frame->data, frame->linesize, 0, frame->height, converted->data, converted->linesize);
+    sws_freeContext(sws);
 
     struct ConvGuard {
         ~ConvGuard() { av_frame_free(&frame_); }
