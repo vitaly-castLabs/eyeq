@@ -36,7 +36,8 @@ cmake --build build -j
 | `--fsim`     | Feature Similarity Index, luminance only (Zhang et al. 2011; phase congruency + Scharr gradient) |
 | `--fsimc`    | FSIM with chromatic component (YIQ I/Q channels) |
 | `--mdsi`     | Mean Deviation Similarity Index (Nafchi et al. 2016; lower is better, 0 = identical) |
-| `--vmaf`     | VMAF |
+| `--vmaf`     | VMAF (model `vmaf_v0.6.1`) |
+| `--vmaf-neg` | VMAF-NEG (model `vmaf_v0.6.1neg`; less gameable by enhancement filters like sharpening) |
 | `--ssim2`, `--ssimulacra2` | SSIMULACRA 2.1 (fetched from [cloudinary/ssimulacra2](https://github.com/cloudinary/ssimulacra2) and linked in-process) |
 | `--butteraugli` | Butteraugli distance (3-norm and max), via libjxl |
 

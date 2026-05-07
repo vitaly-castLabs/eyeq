@@ -64,6 +64,8 @@ public:
             return std::make_unique<XpsnrY>(width, height, cs);
         if (metric == "vmaf")
             return std::make_unique<Vmaf>(width, height, cs);
+        if (metric == "vmaf-neg")
+            return std::make_unique<VmafNeg>(width, height, cs);
         if (metric == "ssim2")
             return std::make_unique<Ssimulacra2>(width, height, cs);
         if (metric == "butteraugli")

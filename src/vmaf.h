@@ -58,11 +58,11 @@ struct VmafSession {
         return vmaf_init(&ctx, cfg) == 0;
     }
 
-    bool load_model() {
+    bool load_model(const char* model_name = "vmaf_v0.6.1") {
         VmafModelConfig cfg = {};
         cfg.name = "vmaf";
         cfg.flags = VMAF_MODEL_FLAGS_DEFAULT;
-        if (vmaf_model_load(&model, &cfg, "vmaf_v0.6.1") != 0)
+        if (vmaf_model_load(&model, &cfg, model_name) != 0)
             return false;
         if (vmaf_use_features_from_model(ctx, model) != 0)
             return false;
@@ -131,20 +131,19 @@ private:
     }
 };
 
-class Vmaf : public Metrics {
+class VmafBase : public Metrics {
 public:
-    Vmaf(int w, int h, ColorSpace cs): Metrics(w, h, cs) {}
+    using Metrics::Metrics;
 
-    const char* name() const override { return "VMAF"; }
-
-    std::optional<std::vector<Score>> measure(const Image& ref, const Image& dist) noexcept override {
+protected:
+    std::optional<float> compute(const Image& ref, const Image& dist, const char* model_name) noexcept {
         if (colorspace_ != ColorSpace::I420)
             return std::nullopt;
 
         VmafSession runner;
         if (!runner.init())
             return std::nullopt;
-        if (!runner.load_model())
+        if (!runner.load_model(model_name))
             return std::nullopt;
         if (!runner.alloc_pictures(ref.width, ref.height))
             return std::nullopt;
@@ -154,9 +153,34 @@ public:
             return std::nullopt;
         if (!runner.flush())
             return std::nullopt;
-        auto score = runner.get_score(0);
-        if (!score)
+        return runner.get_score(0);
+    }
+};
+
+class Vmaf : public VmafBase {
+public:
+    using VmafBase::VmafBase;
+
+    const char* name() const override { return "VMAF"; }
+
+    std::optional<std::vector<Score>> measure(const Image& ref, const Image& dist) noexcept override {
+        auto s = compute(ref, dist, "vmaf_v0.6.1");
+        if (!s)
             return std::nullopt;
-        return std::vector<Score>{{"VMAF", *score}};
+        return std::vector<Score>{{"VMAF", *s}};
+    }
+};
+
+class VmafNeg : public VmafBase {
+public:
+    using VmafBase::VmafBase;
+
+    const char* name() const override { return "VMAF-NEG"; }
+
+    std::optional<std::vector<Score>> measure(const Image& ref, const Image& dist) noexcept override {
+        auto s = compute(ref, dist, "vmaf_v0.6.1neg");
+        if (!s)
+            return std::nullopt;
+        return std::vector<Score>{{"VMAF-NEG", *s}};
     }
 };
