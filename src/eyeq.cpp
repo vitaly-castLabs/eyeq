@@ -206,7 +206,8 @@ static bool parse_args(Options& opts, int argc, char* argv[]) {
         add_metric(opts, "psnr");
 
     if (positional.size() < 2) {
-        std::cerr << "Usage: eyeq [--all] [--psnr] [--psnr-y] [--ssim] [--psnr-hvs] [--xpsnr] [--xpsnr-y] [--vmaf] [--ssim2|--ssimulacra2] [--butteraugli] <reference> <distorted>\n";
+        std::cerr << "Usage: eyeq [--all] [--psnr] [--psnr-y] [--ssim] [--psnr-hvs] [--xpsnr] [--xpsnr-y] [--vmaf] [--ssim2|--ssimulacra2] [--butteraugli] "
+                     "<reference> <distorted>\n";
         return false;
     }
 
