@@ -30,6 +30,7 @@ protected:
 };
 
 #include "butteraugli.h"
+#include "fsim.h"
 #include "mdsi.h"
 #include "psnr.h"
 #include "psnr_hvs.h"
@@ -53,6 +54,10 @@ public:
             return std::make_unique<PsnrHvs>(width, height, cs);
         if (metric == "mdsi")
             return std::make_unique<Mdsi>(width, height, cs);
+        if (metric == "fsim")
+            return std::make_unique<Fsim>(width, height, cs);
+        if (metric == "fsimc")
+            return std::make_unique<FsimC>(width, height, cs);
         if (metric == "xpsnr")
             return std::make_unique<Xpsnr>(width, height, cs);
         if (metric == "xpsnr-y")

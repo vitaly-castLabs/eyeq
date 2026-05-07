@@ -17,6 +17,7 @@ pkg_check_modules(LIBAVFORMAT REQUIRED IMPORTED_TARGET libavformat)
 pkg_check_modules(LIBAVCODEC REQUIRED IMPORTED_TARGET libavcodec)
 pkg_check_modules(LIBAVUTIL REQUIRED IMPORTED_TARGET libavutil)
 pkg_check_modules(LIBSWSCALE REQUIRED IMPORTED_TARGET libswscale)
+pkg_check_modules(FFTW3F REQUIRED IMPORTED_TARGET fftw3f)
 pkg_check_modules(LIBVMAF REQUIRED IMPORTED_TARGET libvmaf)
 pkg_check_modules(LIBJXL REQUIRED IMPORTED_TARGET libjxl)
 pkg_check_modules(LIBJXL_THREADS REQUIRED IMPORTED_TARGET libjxl_threads)
@@ -45,7 +46,7 @@ target_link_libraries(ssimulacra2_core PUBLIC
     hwy
 )
 
-add_executable(eyeq src/eyeq.cpp src/ssimulacra2.cpp src/butteraugli.cpp src/xpsnr.cpp src/mdsi.cpp)
+add_executable(eyeq src/eyeq.cpp src/ssimulacra2.cpp src/butteraugli.cpp src/xpsnr.cpp src/mdsi.cpp src/fsim.cpp)
 
 target_compile_options(eyeq PRIVATE -Wall -Wextra -Wpedantic)
 target_link_libraries(
@@ -56,6 +57,7 @@ target_link_libraries(
         PkgConfig::LIBAVCODEC
         PkgConfig::LIBAVUTIL
         PkgConfig::LIBSWSCALE
+        PkgConfig::FFTW3F
         PkgConfig::LIBVMAF
         PkgConfig::LIBJXL
         PkgConfig::LIBJXL_THREADS
