@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <limits>
@@ -178,12 +179,45 @@ static void add_metric(Options& opts, std::string_view metric) {
         opts.metrics.push_back(metric);
 }
 
+static void print_help(std::ostream& os) {
+    os << "Usage: eyeq [options] <reference> <distorted>\n"
+          "\n"
+          "Options:\n"
+          "  -h, --help     Show this message and exit\n"
+          "  --all          Enable every metric (default: --psnr)\n"
+          "\n"
+          "Metrics (range; direction):\n"
+          "  --psnr         PSNR, full frame (YUV 4:2:0 weighted 4:1:1)         [dB; higher = better, capped at 60 when identical]\n"
+          "  --psnr-y       PSNR, Y plane only                                  [dB; higher = better]\n"
+          "  --ssim         Structural Similarity Index (Y)                     [0..1; higher = better, 1 = identical]\n"
+          "  --ms-ssim      Multi-Scale SSIM (Y)                                [0..1; higher = better, 1 = identical]\n"
+          "  --psnr-hvs     PSNR with Human Visual System weighting             [dB; higher = better]\n"
+          "  --xpsnr        Extended Perceptually Weighted PSNR (HHI)           [dB; higher = better]\n"
+          "  --xpsnr-y      XPSNR, Y plane only                                 [dB; higher = better]\n"
+          "  --fsim         Feature Similarity Index, luminance only            [0..1; higher = better, 1 = identical]\n"
+          "  --fsimc        FSIM with chromatic component (YIQ)                 [0..1; higher = better, 1 = identical]\n"
+          "  --mdsi         Mean Deviation Similarity Index                     [~0..0.5; LOWER = better, 0 = identical]\n"
+          "  --vmaf         VMAF (model vmaf_v0.6.1)                            [~0..100; higher = better]\n"
+          "  --ssim2        SSIMULACRA 2.1 (alias --ssimulacra2)                [~-inf..100; higher = better, >=90 visually identical]\n"
+          "  --butteraugli  Butteraugli distance (3-norm and max), via libjxl   [>=0; LOWER = better, <=1 visually identical]\n"
+          "\n"
+          "No flags defaults to --psnr only. Inputs are converted to YUV 4:2:0, BT.709, full range.\n";
+}
+
 static bool parse_args(Options& opts, int argc, char* argv[]) {
+    if (argc <= 1) {
+        print_help(std::cout);
+        std::exit(0);
+    }
+
     std::vector<std::string_view> positional;
 
     for (int i = 1; i < argc; ++i) {
         const std::string_view arg = argv[i];
-        if (arg == "--psnr")
+        if (arg == "--help" || arg == "-h") {
+            print_help(std::cout);
+            std::exit(0);
+        } else if (arg == "--psnr")
             add_metric(opts, "psnr");
         else if (arg == "--psnr-y")
             add_metric(opts, "psnr-y");
@@ -219,14 +253,13 @@ static bool parse_args(Options& opts, int argc, char* argv[]) {
             positional.push_back(arg);
     }
 
-    if (opts.metrics.empty())
-        add_metric(opts, "psnr");
-
     if (positional.size() < 2) {
-        std::cerr << "Usage: eyeq [--all] [--psnr] [--psnr-y] [--ssim] [--ms-ssim] [--psnr-hvs] [--xpsnr] [--xpsnr-y] [--fsim] [--fsimc] [--mdsi] [--vmaf] "
-                     "[--ssim2|--ssimulacra2] [--butteraugli] <reference> <distorted>\n";
+        print_help(std::cerr);
         return false;
     }
+
+    if (opts.metrics.empty())
+        add_metric(opts, "psnr");
 
     opts.ref_path = positional[0];
     opts.dist_path = positional[1];
