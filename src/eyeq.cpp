@@ -162,7 +162,7 @@ struct Options {
     std::string_view dist_path;
 };
 
-static constexpr std::string_view kAllMetrics[] = {"psnr", "psnr-y", "ssim", "psnr-hvs", "xpsnr", "xpsnr-y", "vmaf", "ssim2", "butteraugli"};
+static constexpr std::string_view kAllMetrics[] = {"psnr", "psnr-y", "ssim", "ms-ssim", "psnr-hvs", "xpsnr", "xpsnr-y", "vmaf", "ssim2", "butteraugli"};
 
 static void add_metric(Options& opts, std::string_view metric) {
     if (std::find(opts.metrics.begin(), opts.metrics.end(), metric) == opts.metrics.end())
@@ -180,6 +180,8 @@ static bool parse_args(Options& opts, int argc, char* argv[]) {
             add_metric(opts, "psnr-y");
         else if (arg == "--ssim")
             add_metric(opts, "ssim");
+        else if (arg == "--ms-ssim")
+            add_metric(opts, "ms-ssim");
         else if (arg == "--psnr-hvs")
             add_metric(opts, "psnr-hvs");
         else if (arg == "--xpsnr")
@@ -206,7 +208,8 @@ static bool parse_args(Options& opts, int argc, char* argv[]) {
         add_metric(opts, "psnr");
 
     if (positional.size() < 2) {
-        std::cerr << "Usage: eyeq [--all] [--psnr] [--psnr-y] [--ssim] [--psnr-hvs] [--xpsnr] [--xpsnr-y] [--vmaf] [--ssim2|--ssimulacra2] [--butteraugli] "
+        std::cerr << "Usage: eyeq [--all] [--psnr] [--psnr-y] [--ssim] [--ms-ssim] [--psnr-hvs] [--xpsnr] [--xpsnr-y] [--vmaf] [--ssim2|--ssimulacra2] "
+                     "[--butteraugli] "
                      "<reference> <distorted>\n";
         return false;
     }

@@ -29,6 +29,7 @@ cmake --build build -j
 | `--psnr`     | Peak Signal-to-Noise Ratio, full frame (YUV 4:2:0 weighted 4:1:1) |
 | `--psnr-y`   | Peak Signal-to-Noise Ratio, Y plane only |
 | `--ssim`     | Structural Similarity Index (Y channel) |
+| `--ms-ssim`  | Multi-Scale SSIM (Y channel) |
 | `--psnr-hvs` | PSNR with Human Visual System weighting |
 | `--xpsnr`    | Extended Perceptually Weighted PSNR, full frame (YUV 4:2:0 weighted 4:1:1; Fraunhofer HHI; algorithm ported from FFmpeg's `vf_xpsnr.c`) |
 | `--xpsnr-y`  | Extended Perceptually Weighted PSNR, Y plane only |

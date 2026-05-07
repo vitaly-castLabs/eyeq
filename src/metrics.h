@@ -46,6 +46,8 @@ public:
             return std::make_unique<PsnrY>(width, height, cs);
         if (metric == "ssim")
             return std::make_unique<Ssim>(width, height, cs);
+        if (metric == "ms-ssim")
+            return std::make_unique<MsSsim>(width, height, cs);
         if (metric == "psnr-hvs")
             return std::make_unique<PsnrHvs>(width, height, cs);
         if (metric == "xpsnr")
