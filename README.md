@@ -4,8 +4,16 @@ Objective image quality measurement tool.
 
 ## Prerequisites
 
+Ubuntu / Debian:
+
 ```bash
 sudo apt install build-essential clang cmake libavformat-dev libavcodec-dev libavutil-dev libswscale-dev libfftw3-dev libjxl-dev libhwy-dev liblcms2-dev libjpeg-dev libpng-dev pkg-config
+```
+
+macOS with Homebrew:
+
+```bash
+brew install cmake pkgconf ffmpeg fftw jpeg-xl highway little-cms2 jpeg-turbo libpng libvmaf
 ```
 
 ## Build
