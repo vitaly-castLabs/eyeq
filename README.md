@@ -33,6 +33,7 @@ cmake --build build -j
 | `--psnr-hvs` | PSNR with Human Visual System weighting |
 | `--xpsnr`    | Extended Perceptually Weighted PSNR, full frame (YUV 4:2:0 weighted 4:1:1; Fraunhofer HHI; algorithm ported from FFmpeg's `vf_xpsnr.c`) |
 | `--xpsnr-y`  | Extended Perceptually Weighted PSNR, Y plane only |
+| `--mdsi`     | Mean Deviation Similarity Index (Nafchi et al. 2016; lower is better, 0 = identical) |
 | `--vmaf`     | VMAF |
 | `--ssim2`, `--ssimulacra2` | SSIMULACRA 2.1 (fetched from [cloudinary/ssimulacra2](https://github.com/cloudinary/ssimulacra2) and linked in-process) |
 | `--butteraugli` | Butteraugli distance (3-norm and max), via libjxl |
