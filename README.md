@@ -21,7 +21,7 @@ The script clones Netflix/vmaf at a pinned tag, builds it with Meson, and instal
 macOS with Homebrew:
 
 ```bash
-brew install cmake pkgconf ffmpeg fftw jpeg-xl highway little-cms2 jpeg-turbo libpng libvmaf
+brew install cmake pkgconf ffmpeg fftw highway little-cms2 jpeg-turbo libpng libvmaf
 ```
 
 ## Build
