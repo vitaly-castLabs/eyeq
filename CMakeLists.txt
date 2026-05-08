@@ -67,3 +67,6 @@ target_link_libraries(
         PkgConfig::FFTW3F
         PkgConfig::LIBVMAF
 )
+
+include(GNUInstallDirs)
+install(TARGETS eyeq RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT eyeq)

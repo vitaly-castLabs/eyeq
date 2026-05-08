@@ -31,6 +31,23 @@ cmake -S . -B build
 cmake --build build -j
 ```
 
+## Install
+
+To install the `eyeq` binary system-wide (default prefix `/usr/local`):
+
+```bash
+./scripts/install.sh                       # asks for sudo if prefix needs it
+./scripts/install.sh --prefix ~/.local     # user-local install, no sudo
+```
+
+Or directly via cmake:
+
+```bash
+sudo cmake --install build --component eyeq
+```
+
+The `--component eyeq` flag is required — without it, the FetchContent-vendored libjxl tries to install its own files and errors out. Uninstall with `sudo rm /usr/local/bin/eyeq`.
+
 ## Usage
 
 ```bash
