@@ -7,7 +7,7 @@ Objective image quality measurement tool.
 Ubuntu / Debian:
 
 ```bash
-sudo apt install build-essential clang cmake libavformat-dev libavcodec-dev libavutil-dev libswscale-dev libfftw3-dev libjxl-dev libhwy-dev liblcms2-dev libjpeg-dev libpng-dev pkg-config meson ninja-build nasm
+sudo apt install build-essential clang cmake libavformat-dev libavcodec-dev libavutil-dev libswscale-dev libfftw3-dev libhwy-dev liblcms2-dev libjpeg-dev libpng-dev pkg-config meson ninja-build nasm
 ```
 
 `libvmaf` is not packaged in Ubuntu, so it's built from source into a project-local prefix:
@@ -55,7 +55,6 @@ cmake --build build -j
 | `--vmaf`     | VMAF (model `vmaf_v0.6.1`) |
 | `--vmaf-neg` | VMAF-NEG (model `vmaf_v0.6.1neg`; less gameable by enhancement filters like sharpening) |
 | `--ssim2`, `--ssimulacra2` | SSIMULACRA 2.1 (fetched from [cloudinary/ssimulacra2](https://github.com/cloudinary/ssimulacra2) and linked in-process) |
-| `--butteraugli` | Butteraugli distance (3-norm and max), via libjxl |
 
 libvmaf caps PSNR at 60 dB when planes are identical.
 

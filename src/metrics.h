@@ -29,7 +29,6 @@ protected:
     ColorSpace colorspace_;
 };
 
-#include "butteraugli.h"
 #include "fsim.h"
 #include "mdsi.h"
 #include "psnr.h"
@@ -68,8 +67,6 @@ public:
             return std::make_unique<VmafNeg>(width, height, cs);
         if (metric == "ssim2")
             return std::make_unique<Ssimulacra2>(width, height, cs);
-        if (metric == "butteraugli")
-            return std::make_unique<Butteraugli>(width, height, cs);
         return nullptr;
     }
 };
