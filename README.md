@@ -78,6 +78,17 @@ libvmaf caps PSNR at 60 dB when planes are identical.
 
 No flags defaults to `--psnr` only.
 
+### Raw YUV inputs
+
+Files with a `.yuv` extension are read as planar I420 8-bit (no header). Pass `--width` and `--height`, or pair with an image of known dimensions:
+
+```bash
+./build/eyeq --all --width 2048 --height 858 ref.yuv distorted.yuv
+./build/eyeq ref.png distorted.yuv          # dimensions inherited from ref.png
+```
+
+Raw YUV has no metadata, so it's assumed to already be in the same space as everything else — BT.709, full range. If your `.yuv` uses a different matrix or range, pre-convert it (`ffmpeg -vf "scale=in_color_matrix=bt601:in_range=tv:out_color_matrix=bt709:out_range=full" -pix_fmt yuv420p -f rawvideo`). SSIMULACRA2 needs a path-backed image, so for raw YUV it materializes a temp PPM under `/tmp/` (auto-deleted).
+
 ### Examples
 
 Single metric (default PSNR):

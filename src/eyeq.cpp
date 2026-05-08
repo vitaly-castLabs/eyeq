@@ -1,7 +1,9 @@
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
 #include <iostream>
 #include <limits>
 #include <optional>
@@ -22,6 +24,7 @@ extern "C" {
 
 #include "image.h"
 #include "metrics.h"
+#include "rgb24.h"
 
 // image loading via ffmpeg (ONLY for loading + colorspace conversion)
 static std::optional<Image> load_image(const char* path, ColorSpace cs) {
@@ -99,7 +102,7 @@ static std::optional<Image> load_image(const char* path, ColorSpace cs) {
     // Always go through sws with explicit BT.709 + full-range output, regardless of
     // source format. Mixed sources (e.g., PNG-as-RGB vs JPEG-as-YUVJ) otherwise pick
     // up different default matrices/ranges and bias the comparison.
-    SwsContext* sws = sws_getContext(frame->width, frame->height, src_fmt, frame->width, frame->height, target_fmt, SWS_BILINEAR, nullptr, nullptr, nullptr);
+    SwsContext* sws = sws_getContext(frame->width, frame->height, src_fmt, frame->width, frame->height, target_fmt, SWS_BICUBIC | SWS_ACCURATE_RND, nullptr, nullptr, nullptr);
     if (!sws) {
         std::cerr << "sws_getContext failed: " << path << '\n';
         return std::nullopt;
@@ -165,10 +168,49 @@ static std::optional<Image> load_image(const char* path, ColorSpace cs) {
     return img;
 }
 
+// Raw planar I420 8-bit: w*h Y, then (w/2)*(h/2) U, then (w/2)*(h/2) V.
+// We treat the bytes as already in our normalized space (BT.709 full-range);
+// no metadata is available to do otherwise.
+static std::optional<Image> load_raw_yuv(const char* path, int w, int h) {
+    if (w <= 0 || h <= 0) {
+        std::cerr << "raw YUV needs --width and --height (or a peer image with known dimensions): " << path << '\n';
+        return std::nullopt;
+    }
+    if ((w & 1) || (h & 1)) {
+        std::cerr << "raw YUV 4:2:0 requires even width and height: " << path << '\n';
+        return std::nullopt;
+    }
+
+    const size_t y_size = static_cast<size_t>(w) * h;
+    const size_t c_size = static_cast<size_t>(w / 2) * (h / 2);
+    const size_t total = y_size + 2 * c_size;
+
+    std::ifstream f(path, std::ios::binary);
+    if (!f) {
+        std::cerr << "Cannot open: " << path << '\n';
+        return std::nullopt;
+    }
+
+    Image img;
+    img.width = w;
+    img.height = h;
+    img.colorspace = ColorSpace::I420;
+    img.path = path;
+    img.data.resize(total);
+    f.read(reinterpret_cast<char*>(img.data.data()), static_cast<std::streamsize>(total));
+    if (static_cast<size_t>(f.gcount()) != total) {
+        std::cerr << "Short read for raw YUV (expected " << total << " bytes, got " << f.gcount() << "): " << path << '\n';
+        return std::nullopt;
+    }
+    return img;
+}
+
 struct Options {
     std::vector<std::string_view> metrics;
     std::string_view ref_path;
     std::string_view dist_path;
+    int width = 0;
+    int height = 0;
 };
 
 static constexpr std::string_view kAllMetrics[] = {"psnr", "psnr-y", "ssim",     "ms-ssim", "psnr-hvs", "xpsnr",
@@ -201,7 +243,12 @@ static void print_help(std::ostream& os) {
           "  --vmaf-neg     VMAF-NEG, less gameable by enhancement (vmaf_v0.6.1neg) [~0..100; higher = better]\n"
           "  --ssim2        SSIMULACRA 2.1 (alias --ssimulacra2)                [~-inf..100; higher = better, >=90 visually identical]\n"
           "\n"
-          "No flags defaults to --psnr only. Inputs are converted to YUV 4:2:0, BT.709, full range.\n";
+          "Raw YUV inputs (.yuv, planar I420 8-bit):\n"
+          "  --width N      Width in pixels  (omit when paired with an image of known dimensions)\n"
+          "  --height N     Height in pixels (omit when paired with an image of known dimensions)\n"
+          "\n"
+          "No flags defaults to --psnr only. Inputs are converted to YUV 4:2:0, BT.709, full range.\n"
+          "Raw YUV is assumed already in that space (no metadata to do otherwise).\n";
 }
 
 static bool parse_args(Options& opts, int argc, char* argv[]) {
@@ -243,7 +290,19 @@ static bool parse_args(Options& opts, int argc, char* argv[]) {
             add_metric(opts, "vmaf-neg");
         else if (arg == "--ssim2" || arg == "--ssimulacra2")
             add_metric(opts, "ssim2");
-        else if (arg == "--all") {
+        else if (arg == "--width") {
+            if (i + 1 >= argc) {
+                std::cerr << "--width requires a value\n";
+                return false;
+            }
+            opts.width = std::atoi(argv[++i]);
+        } else if (arg == "--height") {
+            if (i + 1 >= argc) {
+                std::cerr << "--height requires a value\n";
+                return false;
+            }
+            opts.height = std::atoi(argv[++i]);
+        } else if (arg == "--all") {
             for (const auto metric: kAllMetrics)
                 add_metric(opts, metric);
         } else if (arg.starts_with("--")) {
@@ -275,8 +334,38 @@ int main(int argc, char* argv[]) {
 
     const ColorSpace cs = ColorSpace::I420;
 
-    auto ref = load_image(std::string(opts.ref_path).c_str(), cs);
-    auto dist = load_image(std::string(opts.dist_path).c_str(), cs);
+    const std::string ref_path(opts.ref_path);
+    const std::string dist_path(opts.dist_path);
+    const bool ref_yuv = is_raw_yuv_path(opts.ref_path);
+    const bool dist_yuv = is_raw_yuv_path(opts.dist_path);
+
+    std::optional<Image> ref, dist;
+    if (ref_yuv && dist_yuv) {
+        if (opts.width <= 0 || opts.height <= 0) {
+            std::cerr << "Both inputs are raw YUV; --width and --height are required\n";
+            return 1;
+        }
+        ref = load_raw_yuv(ref_path.c_str(), opts.width, opts.height);
+        dist = load_raw_yuv(dist_path.c_str(), opts.width, opts.height);
+    } else if (ref_yuv) {
+        dist = load_image(dist_path.c_str(), cs);
+        if (!dist)
+            return 1;
+        const int w = opts.width > 0 ? opts.width : dist->width;
+        const int h = opts.height > 0 ? opts.height : dist->height;
+        ref = load_raw_yuv(ref_path.c_str(), w, h);
+    } else if (dist_yuv) {
+        ref = load_image(ref_path.c_str(), cs);
+        if (!ref)
+            return 1;
+        const int w = opts.width > 0 ? opts.width : ref->width;
+        const int h = opts.height > 0 ? opts.height : ref->height;
+        dist = load_raw_yuv(dist_path.c_str(), w, h);
+    } else {
+        ref = load_image(ref_path.c_str(), cs);
+        dist = load_image(dist_path.c_str(), cs);
+    }
+
     if (!ref || !dist)
         return 1;
 
@@ -285,17 +374,20 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    int failed = 0;
     for (const auto& metric_name: opts.metrics) {
         auto metric = MetricsFactory::create(metric_name, cs, ref->width, ref->height);
         if (!metric) {
             std::cerr << "Unknown metric: " << metric_name << '\n';
-            return 1;
+            ++failed;
+            continue;
         }
 
         auto scores = metric->measure(*ref, *dist);
         if (!scores) {
             std::cerr << metric_name << ": computation failed\n";
-            return 1;
+            ++failed;
+            continue;
         }
 
         for (const auto& s: *scores) {
@@ -306,5 +398,5 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    return 0;
+    return failed > 0 ? 1 : 0;
 }
