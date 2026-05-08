@@ -29,6 +29,7 @@ protected:
     ColorSpace colorspace_;
 };
 
+#include "dssim.h"
 #include "fsim.h"
 #include "mdsi.h"
 #include "psnr.h"
@@ -67,6 +68,8 @@ public:
             return std::make_unique<VmafNeg>(width, height, cs);
         if (metric == "ssim2")
             return std::make_unique<Ssimulacra2>(width, height, cs);
+        if (metric == "dssim")
+            return std::make_unique<Dssim>(width, height, cs);
         return nullptr;
     }
 };

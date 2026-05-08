@@ -90,6 +90,7 @@ SSIMULACRA2: 58.2346
 | `--vmaf`     | VMAF (model `vmaf_v0.6.1`) |
 | `--vmaf-neg` | VMAF-NEG (model `vmaf_v0.6.1neg`; less gameable by enhancement filters like sharpening) |
 | `--ssim2`, `--ssimulacra2` | SSIMULACRA 2.1 (fetched from [cloudinary/ssimulacra2](https://github.com/cloudinary/ssimulacra2) and linked in-process) |
+| `--dssim`    | Multi-scale L\*a\*b\* structural dissimilarity (clean-room reimplementation of Lesinski's DSSIM; lower = better, 0 = identical) |
 
 libvmaf caps PSNR at 60 dB when planes are identical.
 

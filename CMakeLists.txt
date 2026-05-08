@@ -53,7 +53,7 @@ target_link_libraries(ssimulacra2_core PUBLIC
     hwy
 )
 
-add_executable(eyeq src/eyeq.cpp src/ssimulacra2.cpp src/xpsnr.cpp src/mdsi.cpp src/fsim.cpp src/rgb24.cpp)
+add_executable(eyeq src/eyeq.cpp src/ssimulacra2.cpp src/xpsnr.cpp src/mdsi.cpp src/fsim.cpp src/rgb24.cpp src/dssim.cpp)
 
 target_compile_options(eyeq PRIVATE -Wall -Wextra -Wpedantic)
 target_link_libraries(

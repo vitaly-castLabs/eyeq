@@ -213,8 +213,8 @@ struct Options {
     int height = 0;
 };
 
-static constexpr std::string_view kAllMetrics[] = {"psnr", "psnr-y", "ssim",     "ms-ssim", "psnr-hvs", "xpsnr",
-                                                   "xpsnr-y", "fsim", "fsimc", "mdsi", "vmaf",    "vmaf-neg", "ssim2"};
+static constexpr std::string_view kAllMetrics[] = {"psnr",  "psnr-y", "ssim",  "ms-ssim",  "psnr-hvs", "xpsnr",  "xpsnr-y",
+                                                   "fsim",  "fsimc",  "mdsi",  "vmaf",     "vmaf-neg", "ssim2",  "dssim"};
 
 static void add_metric(Options& opts, std::string_view metric) {
     if (std::find(opts.metrics.begin(), opts.metrics.end(), metric) == opts.metrics.end())
@@ -242,6 +242,7 @@ static void print_help(std::ostream& os) {
           "  --vmaf         VMAF (model vmaf_v0.6.1)                            [~0..100; higher = better]\n"
           "  --vmaf-neg     VMAF-NEG, less gameable by enhancement (vmaf_v0.6.1neg) [~0..100; higher = better]\n"
           "  --ssim2        SSIMULACRA 2.1 (alias --ssimulacra2)                [~-inf..100; higher = better, >=90 visually identical]\n"
+          "  --dssim        Multi-scale L*a*b* structural dissimilarity         [>=0; LOWER = better, 0 = identical]\n"
           "\n"
           "Raw YUV inputs (.yuv, planar I420 8-bit):\n"
           "  --width N      Width in pixels  (omit when paired with an image of known dimensions)\n"
@@ -290,6 +291,8 @@ static bool parse_args(Options& opts, int argc, char* argv[]) {
             add_metric(opts, "vmaf-neg");
         else if (arg == "--ssim2" || arg == "--ssimulacra2")
             add_metric(opts, "ssim2");
+        else if (arg == "--dssim")
+            add_metric(opts, "dssim");
         else if (arg == "--width") {
             if (i + 1 >= argc) {
                 std::cerr << "--width requires a value\n";
