@@ -37,6 +37,24 @@ cmake --build build -j
 ./build/eyeq [options] <reference> <distorted>
 ```
 
+An example:
+```bash
+./build/eyeq --all meridian.png meridian.jpg
+PSNR: 43.3639
+PSNR (Y): 41.9193
+SSIM: 0.990009
+MS-SSIM: 0.987025
+PSNR-HVS: 38.9623
+XPSNR: 44.3294
+XPSNR (Y): 42.9677
+FSIM: 0.991833
+FSIMc: 0.991704
+MDSI: 0.012252
+VMAF: 78.9845
+VMAF-NEG: 76.9834
+SSIMULACRA2: 58.2346
+```
+
 ### Options
 
 | Flag         | Metric |
