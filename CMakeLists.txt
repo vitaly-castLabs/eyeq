@@ -13,6 +13,15 @@ endif()
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
 
 find_package(PkgConfig REQUIRED)
+
+set(EYEQ_BUNDLED_VMAF_PREFIX "${CMAKE_SOURCE_DIR}/third_party/vmaf-install")
+if(EXISTS "${EYEQ_BUNDLED_VMAF_PREFIX}/lib/pkgconfig/libvmaf.pc")
+    set(ENV{PKG_CONFIG_PATH} "${EYEQ_BUNDLED_VMAF_PREFIX}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
+    message(STATUS "Using bundled libvmaf at ${EYEQ_BUNDLED_VMAF_PREFIX}")
+else()
+    message(STATUS "Bundled libvmaf not found; run scripts/install-vmaf.sh or install libvmaf system-wide")
+endif()
+
 pkg_check_modules(LIBAVFORMAT REQUIRED IMPORTED_TARGET libavformat)
 pkg_check_modules(LIBAVCODEC REQUIRED IMPORTED_TARGET libavcodec)
 pkg_check_modules(LIBAVUTIL REQUIRED IMPORTED_TARGET libavutil)

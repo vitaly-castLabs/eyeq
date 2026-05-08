@@ -7,8 +7,16 @@ Objective image quality measurement tool.
 Ubuntu / Debian:
 
 ```bash
-sudo apt install build-essential clang cmake libavformat-dev libavcodec-dev libavutil-dev libswscale-dev libfftw3-dev libjxl-dev libhwy-dev liblcms2-dev libjpeg-dev libpng-dev pkg-config
+sudo apt install build-essential clang cmake libavformat-dev libavcodec-dev libavutil-dev libswscale-dev libfftw3-dev libjxl-dev libhwy-dev liblcms2-dev libjpeg-dev libpng-dev pkg-config meson ninja-build nasm
 ```
+
+`libvmaf` is not packaged in Ubuntu, so it's built from source into a project-local prefix:
+
+```bash
+./scripts/install-vmaf.sh
+```
+
+The script clones Netflix/vmaf at a pinned tag, builds it with Meson, and installs to `third_party/vmaf-install/` (gitignored). Run once per clone; CMake auto-detects it via `PKG_CONFIG_PATH`. If you already have libvmaf installed system-wide, skip this step.
 
 macOS with Homebrew:
 

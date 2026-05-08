@@ -1,5 +1,6 @@
 # Build directories
 /build*
+/third_party
 
 # Ignore all dotfiles/dotdirectories (.DS_Store, .vscode, .idea, etc.)
 .*
