@@ -35,7 +35,6 @@ protected:
 #include "psnr.h"
 #include "psnr_hvs.h"
 #include "ssim.h"
-#include "ssimulacra2.h"
 #include "vmaf.h"
 #include "xpsnr.h"
 
@@ -66,8 +65,6 @@ public:
             return std::make_unique<Vmaf>(width, height, cs);
         if (metric == "vmaf-neg")
             return std::make_unique<VmafNeg>(width, height, cs);
-        if (metric == "ssim2")
-            return std::make_unique<Ssimulacra2>(width, height, cs);
         if (metric == "dssim")
             return std::make_unique<Dssim>(width, height, cs);
         return nullptr;

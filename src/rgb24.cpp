@@ -1,11 +1,6 @@
 #include "rgb24.h"
 
-#include <cctype>
-#include <cstdio>
-#include <cstdlib>
-#include <fstream>
 #include <string>
-#include <unistd.h>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -133,47 +128,4 @@ std::optional<Rgb24> load_rgb24(const Image& img) {
     if (is_raw_yuv_path(img.path))
         return from_image_i420(img);
     return from_path(img.path);
-}
-
-PathHolder& PathHolder::operator=(PathHolder&& o) noexcept {
-    if (this != &o) {
-        if (owns_ && !path_.empty())
-            std::remove(path_.c_str());
-        path_ = std::move(o.path_);
-        owns_ = std::exchange(o.owns_, false);
-    }
-    return *this;
-}
-
-PathHolder::~PathHolder() {
-    if (owns_ && !path_.empty())
-        std::remove(path_.c_str());
-}
-
-std::optional<PathHolder> resolve_path(const Image& img, PathMode mode) {
-    if (mode == PathMode::Auto && !is_raw_yuv_path(img.path))
-        return PathHolder(img.path, false);
-
-    auto rgb = from_image_i420(img);
-    if (!rgb)
-        return std::nullopt;
-
-    char tmpl[] = "/tmp/eyeq_XXXXXX.ppm";
-    int fd = mkstemps(tmpl, 4);  // ".ppm" suffix length
-    if (fd < 0)
-        return std::nullopt;
-    close(fd);
-
-    std::ofstream f(tmpl, std::ios::binary | std::ios::trunc);
-    if (!f) {
-        std::remove(tmpl);
-        return std::nullopt;
-    }
-    f << "P6\n" << rgb->width << ' ' << rgb->height << "\n255\n";
-    f.write(reinterpret_cast<const char*>(rgb->pixels.data()), static_cast<std::streamsize>(rgb->pixels.size()));
-    if (!f) {
-        std::remove(tmpl);
-        return std::nullopt;
-    }
-    return PathHolder(tmpl, true);
 }

@@ -29,37 +29,12 @@ pkg_check_modules(LIBSWSCALE REQUIRED IMPORTED_TARGET libswscale)
 pkg_check_modules(FFTW3F REQUIRED IMPORTED_TARGET fftw3f)
 pkg_check_modules(LIBVMAF REQUIRED IMPORTED_TARGET libvmaf)
 
-include(FetchContent)
-FetchContent_Declare(
-    ssimulacra2
-    GIT_REPOSITORY https://github.com/cloudinary/ssimulacra2.git
-    GIT_TAG        81feacf6a5b0bbd7ec11b4a881a4615033ab0b10
-    SOURCE_SUBDIR  src
-)
-FetchContent_MakeAvailable(ssimulacra2)
-if(TARGET ssimulacra2)
-    set_target_properties(ssimulacra2 PROPERTIES EXCLUDE_FROM_ALL TRUE)
-endif()
-
-add_library(ssimulacra2_core STATIC
-    ${ssimulacra2_SOURCE_DIR}/src/ssimulacra2.cc
-)
-target_include_directories(ssimulacra2_core SYSTEM PUBLIC
-    ${ssimulacra2_SOURCE_DIR}/src
-)
-target_link_libraries(ssimulacra2_core PUBLIC
-    jxl
-    jxl_extras-static
-    hwy
-)
-
-add_executable(eyeq src/eyeq.cpp src/ssimulacra2.cpp src/xpsnr.cpp src/mdsi.cpp src/fsim.cpp src/rgb24.cpp src/dssim.cpp)
+add_executable(eyeq src/eyeq.cpp src/xpsnr.cpp src/mdsi.cpp src/fsim.cpp src/rgb24.cpp src/dssim.cpp)
 
 target_compile_options(eyeq PRIVATE -Wall -Wextra -Wpedantic)
 target_link_libraries(
     eyeq
     PRIVATE
-        ssimulacra2_core
         PkgConfig::LIBAVFORMAT
         PkgConfig::LIBAVCODEC
         PkgConfig::LIBAVUTIL
@@ -69,4 +44,4 @@ target_link_libraries(
 )
 
 include(GNUInstallDirs)
-install(TARGETS eyeq RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT eyeq)
+install(TARGETS eyeq RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

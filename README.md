@@ -7,7 +7,7 @@ Objective image quality measurement tool.
 Ubuntu / Debian:
 
 ```bash
-sudo apt install build-essential clang cmake libavformat-dev libavcodec-dev libavutil-dev libswscale-dev libfftw3-dev libhwy-dev liblcms2-dev libjpeg-dev libpng-dev pkg-config meson ninja-build nasm
+sudo apt install build-essential clang cmake libavformat-dev libavcodec-dev libavutil-dev libswscale-dev libfftw3-dev pkg-config meson ninja-build nasm
 ```
 
 `libvmaf` is not packaged in Ubuntu, so it's built from source into a project-local prefix:
@@ -21,7 +21,7 @@ The script clones Netflix/vmaf at a pinned tag, builds it with Meson, and instal
 macOS with Homebrew:
 
 ```bash
-brew install cmake pkgconf ffmpeg fftw highway little-cms2 jpeg-turbo libpng libvmaf
+brew install cmake pkgconf ffmpeg fftw libvmaf
 ```
 
 ## Build
@@ -43,10 +43,10 @@ To install the `eyeq` binary system-wide (default prefix `/usr/local`):
 Or directly via cmake:
 
 ```bash
-sudo cmake --install build --component eyeq
+sudo cmake --install build
 ```
 
-The `--component eyeq` flag is required — without it, the FetchContent-vendored libjxl tries to install its own files and errors out. Uninstall with `sudo rm /usr/local/bin/eyeq`.
+Uninstall with `sudo rm /usr/local/bin/eyeq`.
 
 ## Usage
 
@@ -69,7 +69,6 @@ FSIMc: 0.991704
 MDSI: 0.012252
 VMAF: 78.9845
 VMAF-NEG: 76.9834
-SSIMULACRA2: 58.2346
 ```
 
 ### Options
@@ -89,7 +88,6 @@ SSIMULACRA2: 58.2346
 | `--mdsi`     | Mean Deviation Similarity Index (Nafchi et al. 2016; lower is better, 0 = identical) |
 | `--vmaf`     | VMAF (model `vmaf_v0.6.1`) |
 | `--vmaf-neg` | VMAF-NEG (model `vmaf_v0.6.1neg`; less gameable by enhancement filters like sharpening) |
-| `--ssim2`, `--ssimulacra2` | SSIMULACRA 2.1 (fetched from [cloudinary/ssimulacra2](https://github.com/cloudinary/ssimulacra2) and linked in-process) |
 | `--dssim`    | Multi-scale L\*a\*b\* structural dissimilarity (clean-room reimplementation of Lesinski's DSSIM; lower = better, 0 = identical) |
 
 libvmaf caps PSNR at 60 dB when planes are identical.
@@ -105,7 +103,7 @@ Files with a `.yuv` extension are read as planar I420 8-bit (no header). Pass `-
 ./build/eyeq ref.png distorted.yuv          # dimensions inherited from ref.png
 ```
 
-Raw YUV has no metadata, so it's assumed to already be in the same space as everything else — BT.709, full range. If your `.yuv` uses a different matrix or range, pre-convert it (`ffmpeg -vf "scale=in_color_matrix=bt601:in_range=tv:out_color_matrix=bt709:out_range=full" -pix_fmt yuv420p -f rawvideo`). SSIMULACRA2 needs a path-backed image, so for raw YUV it materializes a temp PPM under `/tmp/` (auto-deleted).
+Raw YUV has no metadata, so it's assumed to already be in the same space as everything else — BT.709, full range. If your `.yuv` uses a different matrix or range, pre-convert it (`ffmpeg -vf "scale=in_color_matrix=bt601:in_range=tv:out_color_matrix=bt709:out_range=full" -pix_fmt yuv420p -f rawvideo`).
 
 ### Examples
 

@@ -36,4 +36,4 @@ if [ ! -w "$PREFIX" ] && [ ! -w "$(dirname "$PREFIX")" ]; then
 fi
 
 echo ">>> Installing to $PREFIX/bin/eyeq"
-$SUDO cmake --install "$BUILD" --prefix "$PREFIX" --component eyeq
+$SUDO cmake --install "$BUILD" --prefix "$PREFIX"
