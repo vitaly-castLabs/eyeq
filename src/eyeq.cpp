@@ -27,7 +27,7 @@ extern "C" {
 #include "rgb24.h"
 
 // image loading via ffmpeg (ONLY for loading + colorspace conversion)
-static std::optional<Image> load_image(const char* path, ColorSpace cs) {
+static std::optional<Image> load_image(const char* path, ColorSpace cs, bool keep_rgb = false) {
     AVFormatContext* fmt = nullptr;
     if (avformat_open_input(&fmt, path, nullptr, nullptr) < 0) {
         std::cerr << "Cannot open: " << path << '\n';
@@ -102,7 +102,8 @@ static std::optional<Image> load_image(const char* path, ColorSpace cs) {
     // Always go through sws with explicit BT.709 + full-range output, regardless of
     // source format. Mixed sources (e.g., PNG-as-RGB vs JPEG-as-YUVJ) otherwise pick
     // up different default matrices/ranges and bias the comparison.
-    SwsContext* sws = sws_getContext(frame->width, frame->height, src_fmt, frame->width, frame->height, target_fmt, SWS_BICUBIC | SWS_ACCURATE_RND, nullptr, nullptr, nullptr);
+    SwsContext* sws = sws_getContext(frame->width, frame->height, src_fmt, frame->width, frame->height, target_fmt, SWS_BICUBIC | SWS_ACCURATE_RND, nullptr,
+                                     nullptr, nullptr);
     if (!sws) {
         std::cerr << "sws_getContext failed: " << path << '\n';
         return std::nullopt;
@@ -165,6 +166,39 @@ static std::optional<Image> load_image(const char* path, ColorSpace cs) {
         offset += plane_size;
     }
 
+    if (keep_rgb) {
+        SwsContext* rgb_sws = sws_getContext(frame->width, frame->height, src_fmt, frame->width, frame->height, AV_PIX_FMT_RGB24,
+                                             SWS_BICUBIC | SWS_ACCURATE_RND, nullptr, nullptr, nullptr);
+        if (!rgb_sws) {
+            std::cerr << "sws_getContext failed for RGB: " << path << '\n';
+            return std::nullopt;
+        }
+
+        auto rgb = std::make_shared<Rgb24>();
+        rgb->width = frame->width;
+        rgb->height = frame->height;
+        rgb->pixels.resize(static_cast<size_t>(frame->width) * frame->height * 3);
+        uint8_t* rgb_dst[4] = {rgb->pixels.data(), nullptr, nullptr, nullptr};
+        int rgb_dst_stride[4] = {frame->width * 3, 0, 0, 0};
+        sws_scale(rgb_sws, (const uint8_t* const*)frame->data, frame->linesize, 0, frame->height, rgb_dst, rgb_dst_stride);
+        sws_freeContext(rgb_sws);
+        img.rgb24 = std::move(rgb);
+    }
+
+    return img;
+}
+
+static std::optional<Image> load_rgb_only_image(const char* path) {
+    Image img;
+    img.path = path;
+    auto rgb = load_rgb24(img);
+    if (!rgb) {
+        std::cerr << "Cannot decode RGB: " << path << '\n';
+        return std::nullopt;
+    }
+    img.width = rgb->width;
+    img.height = rgb->height;
+    img.rgb24 = std::make_shared<Rgb24>(std::move(*rgb));
     return img;
 }
 
@@ -213,8 +247,16 @@ struct Options {
     int height = 0;
 };
 
-static constexpr std::string_view kAllMetrics[] = {"psnr",  "psnr-y", "ssim", "ms-ssim",  "psnr-hvs", "xpsnr", "xpsnr-y",
-                                                   "fsim",  "fsimc",  "mdsi", "vmaf",     "vmaf-neg", "dssim"};
+static constexpr std::string_view kAllMetrics[] = {"psnr", "psnr-y", "ssim", "ms-ssim", "psnr-hvs", "xpsnr", "xpsnr-y",
+                                                   "fsim", "fsimc",  "mdsi", "vmaf",    "vmaf-neg", "dssim", "ssimulacra2"};
+
+static bool metric_uses_rgb(std::string_view metric) {
+    return metric == "fsim" || metric == "fsimc" || metric == "mdsi" || metric == "dssim" || metric == "ssimulacra2";
+}
+
+static bool metric_uses_i420(std::string_view metric) {
+    return !metric_uses_rgb(metric);
+}
 
 static void add_metric(Options& opts, std::string_view metric) {
     if (std::find(opts.metrics.begin(), opts.metrics.end(), metric) == opts.metrics.end())
@@ -242,6 +284,8 @@ static void print_help(std::ostream& os) {
           "  --vmaf         VMAF (model vmaf_v0.6.1)                            [~0..100; higher = better]\n"
           "  --vmaf-neg     VMAF-NEG, less gameable by enhancement (vmaf_v0.6.1neg) [~0..100; higher = better]\n"
           "  --dssim        Multi-scale L*a*b* structural dissimilarity         [>=0; LOWER = better, 0 = identical]\n"
+          "  --ssimulacra2  SSIMULACRA 2.1 perceptual quality                   [-inf..100; higher = better, 100 = identical]\n"
+          "  --ssim2        Alias for --ssimulacra2\n"
           "\n"
           "Raw YUV inputs (.yuv, planar I420 8-bit):\n"
           "  --width N      Width in pixels  (omit when paired with an image of known dimensions)\n"
@@ -290,6 +334,8 @@ static bool parse_args(Options& opts, int argc, char* argv[]) {
             add_metric(opts, "vmaf-neg");
         else if (arg == "--dssim")
             add_metric(opts, "dssim");
+        else if (arg == "--ssimulacra2" || arg == "--ssim2")
+            add_metric(opts, "ssimulacra2");
         else if (arg == "--width") {
             if (i + 1 >= argc) {
                 std::cerr << "--width requires a value\n";
@@ -338,6 +384,9 @@ int main(int argc, char* argv[]) {
     const std::string dist_path(opts.dist_path);
     const bool ref_yuv = is_raw_yuv_path(opts.ref_path);
     const bool dist_yuv = is_raw_yuv_path(opts.dist_path);
+    const bool any_rgb_metric = std::any_of(opts.metrics.begin(), opts.metrics.end(), metric_uses_rgb);
+    const bool any_i420_metric = std::any_of(opts.metrics.begin(), opts.metrics.end(), metric_uses_i420);
+    const bool rgb_only_file_inputs = any_rgb_metric && !any_i420_metric && !ref_yuv && !dist_yuv;
 
     std::optional<Image> ref, dist;
     if (ref_yuv && dist_yuv) {
@@ -348,22 +397,25 @@ int main(int argc, char* argv[]) {
         ref = load_raw_yuv(ref_path.c_str(), opts.width, opts.height);
         dist = load_raw_yuv(dist_path.c_str(), opts.width, opts.height);
     } else if (ref_yuv) {
-        dist = load_image(dist_path.c_str(), cs);
+        dist = load_image(dist_path.c_str(), cs, any_rgb_metric);
         if (!dist)
             return 1;
         const int w = opts.width > 0 ? opts.width : dist->width;
         const int h = opts.height > 0 ? opts.height : dist->height;
         ref = load_raw_yuv(ref_path.c_str(), w, h);
     } else if (dist_yuv) {
-        ref = load_image(ref_path.c_str(), cs);
+        ref = load_image(ref_path.c_str(), cs, any_rgb_metric);
         if (!ref)
             return 1;
         const int w = opts.width > 0 ? opts.width : ref->width;
         const int h = opts.height > 0 ? opts.height : ref->height;
         dist = load_raw_yuv(dist_path.c_str(), w, h);
+    } else if (rgb_only_file_inputs) {
+        ref = load_rgb_only_image(ref_path.c_str());
+        dist = load_rgb_only_image(dist_path.c_str());
     } else {
-        ref = load_image(ref_path.c_str(), cs);
-        dist = load_image(dist_path.c_str(), cs);
+        ref = load_image(ref_path.c_str(), cs, any_rgb_metric);
+        dist = load_image(dist_path.c_str(), cs, any_rgb_metric);
     }
 
     if (!ref || !dist)

@@ -23,7 +23,8 @@ std::optional<Rgb24> from_image_i420(const Image& img) {
     if (img.colorspace != ColorSpace::I420)
         return std::nullopt;
 
-    SwsContext* sws = sws_getContext(img.width, img.height, AV_PIX_FMT_YUV420P, img.width, img.height, AV_PIX_FMT_RGB24, SWS_BICUBIC | SWS_ACCURATE_RND, nullptr, nullptr, nullptr);
+    SwsContext* sws = sws_getContext(img.width, img.height, AV_PIX_FMT_YUV420P, img.width, img.height, AV_PIX_FMT_RGB24, SWS_BICUBIC | SWS_ACCURATE_RND,
+                                     nullptr, nullptr, nullptr);
     if (!sws)
         return std::nullopt;
 
@@ -31,10 +32,10 @@ std::optional<Rgb24> from_image_i420(const Image& img) {
     sws_setColorspaceDetails(sws, sws_getCoefficients(SWS_CS_ITU709), 1 /* full range */, sws_getCoefficients(SWS_CS_ITU709), 1, 0, 1 << 16, 1 << 16);
 
     const uint8_t* src[4] = {
-        img.data.data() + img.plane_offset(0),
-        img.data.data() + img.plane_offset(1),
-        img.data.data() + img.plane_offset(2),
-        nullptr,
+            img.data.data() + img.plane_offset(0),
+            img.data.data() + img.plane_offset(1),
+            img.data.data() + img.plane_offset(2),
+            nullptr,
     };
     int src_stride[4] = {img.width, (img.width + 1) / 2, (img.width + 1) / 2, 0};
 
@@ -122,9 +123,11 @@ std::optional<Rgb24> from_path(const std::string& path) {
     return out;
 }
 
-}  // namespace
+} // namespace
 
 std::optional<Rgb24> load_rgb24(const Image& img) {
+    if (img.rgb24)
+        return *img.rgb24;
     if (is_raw_yuv_path(img.path))
         return from_image_i420(img);
     return from_path(img.path);

@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <span>
 #include <string>
 #include <vector>
@@ -13,6 +14,8 @@ extern "C" {
 enum class ColorSpace {
     I420,
 };
+
+struct Rgb24;
 
 [[maybe_unused]]
 static const char* color_space_name(ColorSpace cs) {
@@ -38,6 +41,7 @@ struct Image {
     ColorSpace colorspace = ColorSpace::I420;
     std::vector<uint8_t> data;
     std::string path;
+    std::shared_ptr<Rgb24> rgb24;
 
     std::span<const uint8_t> plane(int idx) const {
         int w = width, h = height;

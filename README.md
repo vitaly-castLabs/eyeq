@@ -7,7 +7,7 @@ Objective image quality measurement tool.
 Ubuntu / Debian:
 
 ```bash
-sudo apt install build-essential clang cmake libavformat-dev libavcodec-dev libavutil-dev libswscale-dev libfftw3-dev pkg-config meson ninja-build nasm
+sudo apt install build-essential clang cmake libavformat-dev libavcodec-dev libavutil-dev libswscale-dev libfftw3-dev libhwy-dev pkg-config meson ninja-build nasm
 ```
 
 `libvmaf` is not packaged in Ubuntu, so it's built from source into a project-local prefix:
@@ -21,7 +21,7 @@ The script clones Netflix/vmaf at a pinned tag, builds it with Meson, and instal
 macOS with Homebrew:
 
 ```bash
-brew install cmake pkgconf ffmpeg fftw libvmaf
+brew install cmake pkgconf ffmpeg fftw highway libvmaf
 ```
 
 ## Build
@@ -69,6 +69,7 @@ FSIMc: 0.991704
 MDSI: 0.012252
 VMAF: 78.9845
 VMAF-NEG: 76.9834
+SSIMULACRA2: 58.309
 ```
 
 ### Options
@@ -89,6 +90,7 @@ VMAF-NEG: 76.9834
 | `--vmaf`     | VMAF (model `vmaf_v0.6.1`) |
 | `--vmaf-neg` | VMAF-NEG (model `vmaf_v0.6.1neg`; less gameable by enhancement filters like sharpening) |
 | `--dssim`    | Multi-scale L\*a\*b\* structural dissimilarity (clean-room reimplementation of Lesinski's DSSIM; lower = better, 0 = identical) |
+| `--ssimulacra2`, `--ssim2` | SSIMULACRA 2.1 perceptual quality (native port of the Cloudinary/JPEG XL metric math with a Highway-accelerated blur path; no libjxl/lcms/PNG temp-file path) |
 
 libvmaf caps PSNR at 60 dB when planes are identical.
 

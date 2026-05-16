@@ -28,9 +28,11 @@ pkg_check_modules(LIBAVUTIL REQUIRED IMPORTED_TARGET libavutil)
 pkg_check_modules(LIBSWSCALE REQUIRED IMPORTED_TARGET libswscale)
 pkg_check_modules(FFTW3F REQUIRED IMPORTED_TARGET fftw3f)
 pkg_check_modules(LIBVMAF REQUIRED IMPORTED_TARGET libvmaf)
+pkg_check_modules(HWY REQUIRED IMPORTED_TARGET libhwy)
 
-add_executable(eyeq src/eyeq.cpp src/xpsnr.cpp src/mdsi.cpp src/fsim.cpp src/rgb24.cpp src/dssim.cpp)
+add_executable(eyeq src/eyeq.cpp src/xpsnr.cpp src/mdsi.cpp src/fsim.cpp src/rgb24.cpp src/dssim.cpp src/ssimulacra2.cpp src/ssimulacra2_hwy.cpp)
 
+target_include_directories(eyeq PRIVATE "${CMAKE_SOURCE_DIR}")
 target_compile_options(eyeq PRIVATE -Wall -Wextra -Wpedantic)
 target_link_libraries(
     eyeq
@@ -41,6 +43,7 @@ target_link_libraries(
         PkgConfig::LIBSWSCALE
         PkgConfig::FFTW3F
         PkgConfig::LIBVMAF
+        PkgConfig::HWY
 )
 
 include(GNUInstallDirs)
